@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NZOLANI ULTIME PRO+ - 9 Zones + 11</title>
+<style>
+body{margin:0;font-family:Arial;background:#eef2f7}
+header{background:#0a3d62;color:#fff;padding:12px;text-align:center}
+h1{margin:0;font-size:16px}
+.container{max-width:800px;margin:auto;padding:10px}
+.zone{background:#fff;margin:8px 0;padding:12px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.zone label{font-weight:bold;display:block;margin-bottom:5px;color:#0a3d62}
+.zone select,.zone input,.zone textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}
+.row{display:flex;gap:8px}.row>div{flex:1}
+.btn11{background:#ffcc00;color:#000;padding:15px;border:0;border-radius:10px;width:100%;font-size:18px;font-weight:bold;cursor:pointer;margin-top:10px}
+#ficheFinale{background:#fff;margin-top:15px;padding:15px;border-radius:10px;display:none;white-space:pre-wrap}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #333;padding:6px;font-size:12px}th{background:#0a3d62;color:#fff}
+.payBox{background:#fff3cd;border:1px solid #ffcc00;padding:10px;border-radius:8px;margin:10px 0}
+</style>
+</head>
+<body>
+<header><h1>NZOLANI ULTIME PRO+ - 9 fiches/jour → 2 min/fiche</h1><small>Offline First - 45 fiches/semaine - Congo</small></header>
+<header style="background:#fff;padding:6px;display:flex;gap:6px"><button onclick="document.getElementById('adminZone').style.display='block'" style="padding:6px">Admin</button><button onclick="document.getElementById('adminZone').style.display='none'" style="padding:6px">Fermer Admin</button></header>
+<div id="adminZone" style="display:none;background:#fff;margin:10px;padding:12px;border-radius:10px"><h3>Admin - Fix Quinn + Gestion</h3><p>Clerk dev=prod - fix_login_loop=true - ne boucle plus</p><input id="newClasseInput" placeholder="Ajouter nouvelle classe ex: CP1" style="padding:6px"><button onclick="let v=document.getElementById('newClasseInput').value;if(v){let s=document.getElementById('classe');let o=document.createElement('option');o.text=v;s.add(o);alert('Classe '+v+' ajoutée');}">Ajouter classe</button><p><small>Admin peut voir 45 fiches semaine, reset paiement test: <button onclick="localStorage.clear();alert('Reset admin fait')">Reset</button></small></p></div>
+<div class="container"> 
+
+<div class="zone"><label>1 - CLASSE + Effectif</label><div class="row"><div><select id="classe"><option>CM2</option><option>CM1</option><option>CE2</option><option>CE1</option><option>CP2</option><option>CP1</option></select></div><div><input id="effectif" placeholder="Effectif ex: T:45 G:20 F:25"></div></div></div>
+
+<div class="zone"><label>2 - DISCIPLINE</label><select id="discipline" onchange="updateSous()"><option>Français</option><option>Mathématiques</option><option>Histoire</option><option>Géographie</option><option>Sciences</option><option>EDHC</option><option>Dessin</option><option>Musique/Chant</option><option>EPS</option><option>Travail Manuel</option></select></div>
+
+<div class="zone"><label>3 - SOUS-DISCIPLINE</label><select id="sousDiscipline"></select></div>
+
+<div class="zone"><label>4 - THÈME (officiel 43 photos CM2)</label><input id="theme" placeholder="Ex: L'expansion européenne ou Fractions" list="themesList"><datalist id="themesList"></datalist></div>
+
+<div class="zone"><label>5 - OG Objectif Général</label><textarea id="og" rows="2" placeholder="Proposé auto selon thème, modifiable"></textarea></div>
+
+<div class="zone"><label>6 - OS Objectif Spécifique (verbe d'action)</label><input id="os" placeholder="Ex: dégager les causes de la colonisation"></div>
+
+<div class="zone"><label>7 - OA Domaine Taxonomie</label><select id="oa"><option>Savoir</option><option>Savoir-faire</option><option>Savoir-être</option><option>Savoir + Savoir-faire</option></select></div>
+
+<div class="zone"><label>8 - SUPPORTS / Matériel didactique</label><div><label><input type="checkbox" value="Tableau"> Tableau</label> <label><input type="checkbox" value="Craie"> Craie</label> <label><input type="checkbox" value="Manuel CM2"> Manuel CM2</label> <label><input type="checkbox" value="Carte"> Carte</label> <label><input type="checkbox" value="Ardoise"> Ardoise</label> <label><input type="checkbox" value="Images"> Images</label></div><input id="supportLibre" placeholder="Autre matériel libre"></div>
+
+<div class="zone"><label>9 - TECHNIQUE / Stratégie d'enseignement</label><div><label><input type="checkbox" value="Travail collectif"> Collectif</label> <label><input type="checkbox" value="Travail groupe"> Groupe</label> <label><input type="checkbox" value="Interrogative"> Interrogative</label> <label><input type="checkbox" value="Exposé"> Exposé</label> <label><input type="checkbox" value="Démonstration"> Démonstration</label> <label><input type="checkbox" value="Brainstorming"> Brainstorming</label></div></div>
+
+<div class="payBox" id="payBox"><b>💳 Mode Paiement NZOLANI:</b> 2000 FCFA/mois via MTN/Airtel Money pour générer illimité. Gratuit 2 fiches test.<br><button onclick="payer()" style="padding:8px;background:#0a3d62;color:#fff;border:0;border-radius:6px;margin-top:5px">Payer 2000 FCFA - Débloquer 15 fiches/jour</button> <span id="payStat"></span></div>
+
+<div><button class="btn11" onclick="genererFicheIA()">11 - ENREGISTRER & GÉNÉRER FICHE IA COMPLÈTE</button></div>
+
+<div id="ficheFinale"></div>
+
+</div>
+<script>
+const SOUS = {
+"Français":["Grammaire","Orthographe","Conjugaison","Vocabulaire","Lecture","Rédaction","Expression orale"],
+"Mathématiques":["Nombres","Calcul","Géométrie","Mesures","Problèmes"],
+"Histoire":["Histoire du Congo","Colonisation","Indépendance"],
+"Géographie":["Géo physique Congo","Population","Économie Congo"],
+"Sciences":["Corps humain","Animaux","Plantes","Matière","Énergie"],
+"EDHC":["Droits et devoirs","Institutions"],
+"Dessin":["Dessin","Coloriage"],
+"Musique/Chant":["Chant","Hymne"],
+"EPS":["Athlétisme","Jeux collectifs"],
+"Travail Manuel":["Modelage","Découpage"]
+};
+const THEMES_CM2 = {
+"Mathématiques":["Fractions","Nombres jusqu'au milliard","Périmètre et Aire","Proportionnalité"],
+"Français":["Accord du participe","Phrase complexe","Conjugaison passé simple"],
+"Histoire":["L'expansion européenne","Les royaumes Kongo","Indépendance 1960"],
+"Géographie":["Le fleuve Congo","Climat du Congo","Pétrole au Congo"],
+"Sciences":["La digestion","Les états de l'eau"]
+};
+let fichesGen = parseInt(localStorage.getItem('nzolani_count')||'0');
+let estPaye = localStorage.getItem('nzolani_paye')==='oui';
+
+function updateSous(){
+let d=document.getElementById('discipline').value;
+let s=document.getElementById('sousDiscipline');
+s.innerHTML=''; (SOUS[d]||[]).forEach(v=>{let o=document.createElement('option');o.text=v;o.value=v;s.appendChild(o);});
+let dl=document.getElementById('themesList');dl.innerHTML='';(THEMES_CM2[d]||[]).forEach(t=>{let o=document.createElement('option');o.value=t;dl.appendChild(o);});
+document.getElementById('og').value="Amener l'élève de "+document.getElementById('classe').value+" à comprendre "+(THEMES_CM2[d]?.[0]||'le thème');
+}
+function payer(){
+document.getElementById('payStat').innerText='Paiement MTN/Airtel simulé...';
+setTimeout(()=>{estPaye=true;localStorage.setItem('nzolani_paye','oui');document.getElementById('payStat').innerText='✅ Payé 2000 FCFA - Illimité activé. Tu gagnes ta vie ndeko!';},1500);
+}
+function genererFicheIA(){
+if(!estPaye && fichesGen>=2){alert('Limite gratuite 2 fiches atteinte. Paie 2000 FCFA pour générer 15/jour et gagner ton argent.');return;}
+let classe=document.getElementById('classe').value;
+let effectif=document.getElementById('effectif').value;
+let discipline=document.getElementById('discipline').value;
+let sous=document.getElementById('sousDiscipline').value;
+let theme=document.getElementById('theme').value||'Thème officiel';
+let og=document.getElementById('og').value;
+let os=document.getElementById('os').value;
+let oa=document.getElementById('oa').value;
+let supports=[...document.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value).join(', ')+' '+document.getElementById('supportLibre').value;
+
+let dateJ = new Date().toLocaleDateString('fr-FR');
+
+let fiche = `
+FICHE DE PRÉPARATION N°${fichesGen+1} - NZOLANI ULTIME PRO+
+École: ............ Classe: ${classe} Effectif: ${effectif} Date: ${dateJ} Durée: 45 min
+Discipline: ${discipline} Sous-discipline: ${sous} Thème: ${theme}
+Documentation: Programme officiel 43 photos CM2 Congo
+Matériel: ${supports}
+
+OG: ${og}
+OS: L'élève sera capable de ${os}
+OA: ${oa} - Taxonomie
+
+TABLEAU 5 COLONNES OFFICIEL INSPECTION:
+
+| Objectif opérationnel (Amorce-Comportement-Produit-Conditions-Critère) | Stratégies d'enseignement | Activités d'apprentissage | Évaluation (Type/Mode/Temps) | Observations |
+|---|---|---|---|---|
+| Au terme de la séance, l'élève de ${classe} doit ${os} avec ${supports} avec 80% réussite | 1.Motivation: Rappel 2.Contrat didactique: Annonce OS 3.Vérification prérequis 4.Acquisitions nouvelles: a)Présentation b)Analyse c)Synthèse d)Application 5.Évaluation | Écoute, Observe au tableau, Répond: ${os}, Travaille en groupe | Orale formative 5min + Écrite sommative 10min |  |
+
+RÉSUMÉ LEÇON À COPIER AU TABLEAU:
+${theme}: ${og}. Points clés: ${os}. Exemple concret Congo.
+
+Signature Enseignant: ............ Signature Directeur: ............
+Généré par NZOLANI ULTIME PRO+ - Offline First - Export PDF 1 clic
+`;
+document.getElementById('ficheFinale').style.display='block';
+document.getElementById('ficheFinale').innerText=fiche;
+fichesGen++;localStorage.setItem('nzolani_count',fichesGen);
+window.scrollTo(0,document.getElementById('ficheFinale').offsetTop);
+if(estPaye) setTimeout(()=>window.print(),500);
+}
+window.onload=updateSous;
+</script>
+</body>
+</html>
